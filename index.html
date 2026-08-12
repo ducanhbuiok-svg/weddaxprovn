@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DA x PRO - Wed Tool Fix Lag và App,Game Fix Lag</title>
+    <link rel="icon" type="image/jpeg" href="https://cdn.phototourl.com/free/2026-08-10-b2d365a6-4cbb-4ab5-bf28-7767f2168600.jpg">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+  /* --- HIỆU ỨNG KHÓA CHO Ô SẢN PHẨM --- */
+  .item-card {
+    position: relative;
+  }
+
+  .item-card.locked {
+    pointer-events: none;
+    filter: grayscale(0.9) brightness(0.4);
+  }
+
+  .item-card.locked .card-chain-overlay {
+    display: flex;
+  }
+
+  .card-chain-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    pointer-events: none;
+    overflow: hidden;
+    border-radius: inherit;
+  }
+
+  .card-strand-1 {
+    position: absolute;
+    width: 150%;
+    height: 7px;
+    background: repeating-linear-gradient(45deg, #111, #111 4px, #888 4px, #888 8px, #ccc 8px, #ccc 10px, #222 10px, #222 14px);
+    border: 1px solid #00ffff;
+    box-shadow: 0 0 6px #00ffff;
+    transform: rotate(-15deg);
+  }
+
+  .card-strand-2 {
+    position: absolute;
+    width: 150%;
+    height: 6px;
+    background: repeating-linear-gradient(-35deg, #222, #222 5px, #aaa 5px, #aaa 10px, #fff 10px, #fff 12px);
+    border: 1px solid #ff0055;
+    box-shadow: 0 0 6px #ff0055;
+    transform: rotate(25deg);
+  }
+
+  .card-epic-lock {
+    position: relative;
+    font-size: 24px;
+    background: radial-gradient(circle, #222 30%, #000 90%);
+    border: 3px solid #ff2222;
+    box-shadow: 0 0 15px #ff0000, inset 0 0 8px #ff5555;
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 25;
+    animation: cardLockPulse 1.5s infinite alternate;
+  }
+
+  @keyframes cardLockPulse {
+    0% { transform: scale(1); box-shadow: 0 0 10px #ff0000; }
+    100% { transform: scale(1.1); box-shadow: 0 0 20px #ff4444, inset 0 0 10px #ff8888; }
+  }
+      
+        :root {
+            --bg-main: #000000;
+            --card-bg: rgba(10, 10, 10, 0.95);
+            --card-border: rgba(255, 255, 255, 0.2);
+            --neon-white: #ffffff;
+            --text-main: #f0f6fc;
+            --text-muted: #8b9bb4;
+            --color-online: #00ff66;
+            --color-offline: #ff3333;
+            --color-sky: #38bdf8;
+            --border-glow-color: rgba(255, 255, 255, 0.4);
+        }
+
+        body.light-mode {
+            --bg-main: #f4f6f9;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --card-border: rgba(0, 0, 0, 0.08);
+            --neon-white: #111111;
+            --text-main: #111111;
+            --text-muted: #555555;
+            --border-glow-color: rgba(0, 0, 0, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        #hacker-canvas {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -2; pointer-events: none;
+        }
+
+        .top-navbar {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--card-border);
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 1001;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .brand-container-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .brand-container-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-glow-container {
+            position: relative;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            padding: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 1px solid var(--card-border);
+        }
+
+        .logo-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #000;
+        }
+
+        .brand-title {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.88rem;
+            font-weight: 800;
+            color: var(--neon-white);
+        }
+
+        .glow-wrapper {
+            position: relative;
+            display: inline-flex;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .menu-btn-toggle {
+            background: var(--bg-main);
+            color: var(--neon-white);
+            border: 1px solid var(--card-border);
+            padding: 7px 12px;
+            border-radius: 7px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .custom-controls-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .square-toggle-btn {
+            width: 36px;
+            height: 36px;
+            background: var(--bg-main);
+            color: var(--neon-white);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 100vh;
+            height: 100dvh;
+            background: var(--card-bg);
+            z-index: 9999;
+            padding: 20px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            border-right: 1px solid var(--card-border);
+        }
+
+        .sidebar.active {
+            transform: translateX(0) !important;
+        }
+
+        .sidebar-header {
+            font-family: 'Fira Code', monospace;
+            color: var(--neon-white);
+            font-size: 1.05rem;
+            font-weight: bold;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--card-border);
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-sidebar-btn {
+            background: none; border: none; color: var(--text-muted);
+            font-size: 1.5rem; cursor: pointer;
+        }
+
+        .nav-item-glow {
+            position: relative; display: block; border-radius: 8px; overflow: hidden;
+        }
+
+        .nav-item {
+            position: relative; z-index: 1; background: var(--bg-main); color: var(--text-main); border: 1px solid var(--card-border);
+            padding: 10px 12px; border-radius: 8px; text-align: left; font-size: 0.8rem; font-weight: 600;
+            cursor: pointer; display: flex; align-items: center; gap: 8px; width: 100%;
+        }
+        .nav-item:hover, .nav-item.active {
+            background: var(--neon-white);
+            color: var(--bg-main);
+            border-color: var(--neon-white);
+        }
+
+        .overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.75); z-index: 9998;
+        }
+        .overlay.active { display: block !important; }
+
+        .main-container {
+            flex: 1; padding: 15px; max-width: 600px; width: 100%; margin: 0 auto;
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block !important; }
+
+        .section-title {
+            font-family: 'Fira Code', monospace; color: var(--neon-white); font-size: 1.1rem; font-weight: 700;
+            margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 8px;
+            border-bottom: 1px solid var(--card-border); padding-bottom: 8px;
+        }
+
+        .admin-notice-box {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.78rem;
+            line-height: 1.4;
+        }
+        .admin-notice-title {
+            font-weight: 700;
+            color: var(--neon-white);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+        }
+        .admin-notice-box ol { padding-left: 18px; color: var(--text-muted); }
+        .admin-notice-box li { margin-bottom: 4px; }
+
+        .txt-online { color: var(--color-online); font-weight: 700; }
+        .txt-offline { color: var(--color-offline); font-weight: 700; }
+
+        .item-card {
+            background: var(--card-bg); 
+            border: 1px solid var(--card-border); 
+            border-radius: 12px; 
+            padding: 12px;
+            display: flex; 
+            gap: 12px; 
+            align-items: center; 
+            position: relative; 
+            overflow: hidden;
+        }
+        
+        .item-status-badge {
+            position: absolute;
+            top: 10px;
+            right: 12px;
+            font-size: 0.75rem;
+            z-index: 10;
+        }
+
+        .announcement-bar {
+            background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px;
+            padding: 10px 14px; font-size: 0.8rem; color: var(--neon-white); font-family: 'Fira Code', monospace;
+            margin-bottom: 15px; display: flex; align-items: center; gap: 10px;
+        }
+
+        .list-container { display: flex; flex-direction: column; gap: 12px; }
+
+        .item-thumb {
+            width: 65px; height: 65px; min-width: 65px; background: #111;
+            border: 1px solid var(--card-border); border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            position: relative;
+        }
+        .item-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 7px; }
+
+        .item-info { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+        .item-title { font-size: 0.95rem; font-weight: 700; color: var(--neon-white); padding-right: 50px; }
+        .item-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.2; }
+
+        .action-btns { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+                  
+        .btn-glow-wrapper {
+            position: relative; display: inline-flex; border-radius: 8px; overflow: hidden;
+        }
+
+        .btn-action {
+            position: relative; z-index: 1; padding: 7px 16px; border-radius: 7px; font-size: 0.78rem; font-weight: 700;
+            text-decoration: none; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; border: 1px solid var(--card-border);
+            background: var(--bg-main); color: var(--neon-white); width: 100%; height: 100%;
+        }
+
+        .btn-youtube {
+            background: #ff0000 !important; color: white !important; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 12px 16px; border-radius: 8px; font-weight: 700; font-size: 0.88rem; text-decoration: none;
+            width: 100%; border: 1px solid rgba(255,0,0,0.6);
+        }
+        
+        .btn-telegram {
+            background: #0088cc !important; color: white !important; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 12px 16px; border-radius: 8px; font-weight: 700; font-size: 0.88rem; text-decoration: none;
+            width: 100%; border: 1px solid rgba(0,136,204,0.6); cursor: pointer;
+        }
+
+        .support-box-separate {
+            background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px;
+            padding: 16px; margin-bottom: 15px; text-align: center;
+        }
+        
+        .gaming-stats-container {
+            background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px;
+            padding: 18px; margin-bottom: 16px;
+        }
+
+        .stats-header-flex {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 14px; border-bottom: 1px solid var(--card-border); padding-bottom: 8px;
+        }
+
+        .stats-main-title {
+            font-family: 'Fira Code', monospace; font-size: 0.9rem; color: var(--neon-white); font-weight: 700;
+            display: flex; align-items: center; gap: 6px;
+        }
+
+        .live-pulse-badge {
+            display: inline-flex; align-items: center; gap: 6px; background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border); padding: 3px 8px; border-radius: 20px;
+            font-family: 'Fira Code', monospace; font-size: 0.7rem; color: var(--neon-white);
+        }
+  
+        .live-dot { width: 7px; height: 7px; background: var(--neon-white); border-radius: 50%; }
+
+        .stats-dashboard-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 14px;
+        }
+        
+        .stat-box-modern {
+            background: var(--bg-main); border: 1px solid var(--card-border); border-radius: 10px;
+            padding: 12px; display: flex; flex-direction: column; justify-content: space-between;
+        }
+
+        .stat-box-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+        .stat-box-title { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+        .stat-box-value { font-family: 'Fira Code', monospace; font-size: 1.25rem; font-weight: 800; color: var(--neon-white); }
+
+        .chart-box-container {
+            background: var(--bg-main); border: 1px solid var(--card-border); border-radius: 10px;
+            padding: 12px; margin-top: 14px;
+        }
+        .chart-title { font-family: 'Fira Code', monospace; font-size: 0.78rem; color: var(--neon-white); margin-bottom: 8px; text-align: center; }
+
+        .system-info-card {
+            background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; margin-bottom: 15px; 
+        }
+        .system-info-title { font-size: 0.88rem; font-weight: 700; color: var(--neon-white); margin-bottom: 10px; font-family: 'Fira Code', monospace; display: flex; align-items: center; gap: 8px; }
+
+        .bot-squares-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 15px;
+        }
+        .bot-square-card {
+            background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px;
+            padding: 16px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; cursor: pointer;
+        }
+        .bot-square-thumb {
+            width: 50px; height: 50px; background: var(--bg-main); border: 1px solid var(--card-border); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
+        }
+        .bot-square-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .bot-square-title { font-family: 'Fira Code', monospace; font-size: 0.85rem; font-weight: 700; color: var(--neon-white); }
+
+        .chat-room-container {
+            background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px;
+            padding: 16px; margin-bottom: 15px; display: none; font-family: 'Fira Code', monospace;
+        }
+        .chat-room-container.active { display: block; }
+        .chat-room-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 12px; border-bottom: 1px solid var(--card-border); padding-bottom: 8px;
+            color: var(--neon-white); font-weight: 700; font-size: 0.9rem;
+        }
+        .back-to-bots-btn {
+            background: var(--bg-main); color: var(--neon-white); border: 1px solid var(--card-border);
+            padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; cursor: pointer;
+        }
+        .bot-terminal { background: var(--bg-main); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; margin-bottom: 15px; font-family: 'Fira Code', monospace; }
+        .bot-screen { background: var(--bg-main); border: 1px solid var(--card-border); border-radius: 8px; padding: 12px; min-height: 120px; max-height: 180px; overflow-y: auto; color: var(--neon-white); font-size: 0.8rem; margin-bottom: 12px; line-height: 1.4; }
+        .bot-input-group { display: flex; gap: 8px; }
+        .bot-input { flex: 1; background: var(--bg-main); border: 1px solid var(--card-border); border-radius: 6px; padding: 8px 12px; color: var(--text-main); font-size: 0.8rem; outline: none; }
+                                
+        .modal-overlay { 
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100vw; 
+            height: 100vh; 
+            height: 100dvh;
+            background: rgba(0, 0, 0, 0.8); 
+            z-index: 10000; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 20px; 
+            overflow-y: auto;
+            overscroll-behavior: contain;
+        }
+        .modal-overlay.active { display: flex !important; }
+        
+        .modal-card { 
+            background: var(--card-bg); 
+            border: 1px solid var(--neon-white); 
+            border-radius: 16px; 
+            width: 100%; 
+            max-width: 380px; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            text-align: center;
+            margin: auto;
+        }
+        .modal-title { font-family: 'Fira Code', monospace; font-size: 0.95rem; color: var(--neon-white); font-weight: 700; line-height: 1.4; }
+        .modal-btns { display: flex; flex-direction: column; gap: 10px; }
+        
+        .modal-btn { width: 100%; padding: 12px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; border: 1px solid var(--card-border); }
+        .modal-btn-video { background: var(--bg-main); color: var(--neon-white); }
+        .modal-btn-script { background: var(--neon-white); color: var(--bg-main); border-color: var(--neon-white); }
+        .modal-btn-cancel { background: var(--bg-main); color: var(--text-muted); }
+
+        .notice-card {
+            max-width: 420px;
+            text-align: left;
+        }
+        .notice-title {
+            font-family: 'Fira Code', monospace;
+            font-size: 1rem;
+            color: var(--neon-white);
+            font-weight: 700;
+            text-align: center;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 8px;
+        }
+        .notice-content {
+            font-size: 0.82rem;
+            color: var(--text-main);
+            line-height: 1.5;
+        }
+        .notice-list {
+            margin-top: 8px;
+            padding-left: 20px;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+        }
+        .notice-list li {
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+    
+    <canvas id="hacker-canvas"></canvas>
+
+    <div class="top-navbar">
+        <div class="brand-container-left">
+            <div class="logo-glow-container">
+                <img src="https://cdn.phototourl.com/free/2026-08-08-29f215b5-2cc2-49ad-860c-736267314b44.jpg" alt="Logo" class="logo-img">
+            </div>
+            <div class="glow-wrapper">
+                <button class="menu-btn-toggle" id="btnToggleMenu">☰ MENU</button>
+            </div>
+        </div>
+        <div class="brand-container-right">
+            <div class="brand-title">DA 〆 PRO</div>
+            <div class="custom-controls-group">
+                <button class="square-toggle-btn" id="themeSwitchBtn" onclick="toggleThemeMode()" title="Chuyển Sáng / Tối">
+                    <i class="fas fa-moon" id="themeSwitchIcon"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span>📋CHỌN DANH MỤC</span>
+            <button class="close-sidebar-btn" id="btnCloseSidebar">×</button>
+        </div>
+                
+        <div class="nav-item-glow"><button class="nav-item active" data-page="overview" onclick="switchPage('overview', this)">📊 Tổng Quan Wedsite</button></div>
+        <div class="nav-item-glow"><button class="nav-item" data-page="bot-page" onclick="switchPage('bot-page', this)">🤖 Bot</button></div>
+        <div class="nav-item-glow"><button class="nav-item" data-page="scripts" onclick="switchPage('scripts', this)">🔰 Lệnh Chạy Tool Fix Lag Trên Termux (Android)</button></div>
+        <div class="nav-item-glow"><button class="nav-item" data-page="app-fixlag" onclick="switchPage('app-fixlag', this)">🔰 Lệnh Chạy Tool Tăng FPS Cho Android</button></div>
+        <div class="nav-item-glow"><button class="nav-item" data-page="hack-fixlag" onclick="switchPage('hack-fixlag', this)">🔰 Các App Fix Lag APK Cho Android</button></div>
+        <div class="nav-item-glow"><button class="nav-item" data-page="roblox-qt" onclick="switchPage('roblox-qt', this)">🎮 Roblox Fix Lag APK</button></div>
+        <div class="nav-item-glow"><button class="nav-item" data-page="roblox-qt" onclick="switchPage('huongdan', this)">📝 Hướng Dẫn</button></div>
+    </div>
+
+    <div class="main-container">
+
+        <div id="overview" class="tab-content active">
+            <div class="announcement-bar">
+                <span>🔥</span>
+                <span>Chào Mừng Bạn Đến Với Wedsits DA〆PRO - Hệ Thống Tool & App,Game Fix Lag Mượt Mà.</span>
+            </div>
+
+            <div class="gaming-stats-container">
+                <div class="stats-header-flex">
+                    <div class="stats-main-title">
+                        <span>📈</span> THỐNG KÊ TRUY CẬP Wedsite
+                    </div>
+                    <div class="live-pulse-badge">
+                        <div class="live-dot"></div>
+                        <span>LIVE</span>
+                    </div>
+                </div>
+
+                <div class="stats-dashboard-grid">
+                    <div class="stat-box-modern">
+                        <div class="stat-box-header">
+                            <span class="stat-box-title">Khách Truy Cập</span>
+                            <span>👥</span>
+                        </div>
+                        <div class="stat-box-value" id="statVisitors">0</div>
+                    </div>
+
+                    <div class="stat-box-modern">
+                        <div class="stat-box-header">
+                            <span class="stat-box-title">Trạng Thái Web</span>
+                            <span>⚡</span>
+                        </div>
+                        <div class="stat-box-value" style="font-size: 1rem; color: #00ff66;">Tốt</div>
+                    </div>
+                </div>
+
+                <div class="chart-box-container">
+                    <div class="chart-title">BIỂU ĐỒ THỐNG KÊ WEDSITE</div>
+                    <canvas id="liveChart" height="120"></canvas>
+                </div>
+            </div>
+
+            <div class="system-info-card">
+                <div class="system-info-title"><span>📌</span> THÔNG TIN HỆ THỐNG WEDSITE</div>
+                <div style="font-size: 0.83rem; color: var(--text-muted); line-height: 1.4;">
+                    Wedsite DA〆PRO luôn cung cấp cho mọi người các:<br>
+                    🔰 Lệnh Code Chạy Fix Lag Trên Termux (Android)<br>
+                    🔰 Lệnh Code Tăng FPS Cho Android<br>
+                    🔰 Các App Fix Lag APK Cho Android<br>
+                    🎮 Roblox Fix Lag APK
+                </div>
+            </div>
+                        
+            <div class="support-box-separate">
+                <div style="font-size: 0.9rem; font-weight: 700; color: var(--neon-white); margin-bottom: 10px;">Đừng Quên Ghé Qua Kênh Của DA〆PRO Nha ❤️</div>
+                <a href="https://www.youtube.com/@%C4%90ucAnh-q7i" target="_blank" class="btn-youtube">
+                    <i class="fab fa-youtube" style="font-size: 1.1rem;"></i> Đăng Ký Kênh YouTube
+                </a>
+            </div>
+
+            <div class="support-box-separate">
+                <div style="font-size: 0.9rem; font-weight: 700; color: var(--neon-white); margin-bottom: 10px;">
+    Tham gia nhóm và kênh <span style="color: #0088cc;">Telegram</span> của DA〆PRO Tại Đây</div>
+                <button type="button" class="btn-telegram" onclick="openTelegramModal()">
+                    <i class="fab fa-telegram" style="font-size: 1.1rem;"></i> Tham gia Telegram Ngay
+                </button>
+            </div>
+        </div>
+
+        <div id="bot-page" class="tab-content">
+            <div class="section-title">🤖 Bot</div>
+            
+            <div id="botSquaresArea" class="bot-squares-grid">
+                <div class="bot-square-card" onclick="openChatRoom('bot1')">
+                    <div class="bot-square-thumb">
+                        <img src="https://cdn.phototourl.com/free/2026-08-08-652ef895-0144-45cd-962d-73977b23c825.jpg" alt="Logo bot 1">
+                    </div>
+                    <div class="bot-square-title">Bot Mucsic DA〆PRO Sẽ Thêm Sau</div>
+                </div>
+                <div class="bot-square-card" onclick="openChatRoom('bot2')">
+                    <div class="bot-square-thumb">
+                        <img src="https://cdn.phototourl.com/free/2026-08-08-21ab14ce-cf34-419f-8295-c9430228a0f8.jpg" alt="Logo Bot 2">
+                    </div>
+                    <div class="bot-square-title">Bot Trợ Lí DA〆PRO Sẽ Thêm Sau</div>
+                </div>
+            </div>
+
+            <div id="chatRoomArea" class="chat-room-container">
+                <div class="chat-room-header">
+                    <span id="chatRoomTitle">Phòng Chat Bot</span>
+                    <button class="back-to-bots-btn" onclick="closeChatRoom()">⬅ Quay lại</button>
+                </div>
+                <div class="bot-terminal" style="margin-bottom: 0;">
+                    <div class="bot-screen" id="screenDynamicChat">🤖 Xin chào! Hãy nhập nội dung trò chuyện với bot tại đây.</div>
+                    <div class="bot-input-group" style="margin-top: 10px;">
+                        <input type="text" id="inputDynamicChat" class="bot-input" placeholder="Nhập tin nhắn..." onkeypress="if(event.key === 'Enter') runDynamicChat()">
+                        <div class="btn-glow-wrapper"><button class="btn-action" onclick="runDynamicChat()">Gửi</button></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="scripts" class="tab-content">
+            <div class="section-title">📜>_Lệnh Chạy Tool Fix Lag Trên Termux Cho Android.</div>
+            <div class="admin-notice-box">
+                <div class="admin-notice-title">📌 Hướng dẫn lấy lệnh chạy Tool fix lag:</div>
+                <ol>
+                    <li>Chọn loại lệnh Tool mà bạn muốn sử dụng và nhấn nút 🔗 Lấy link vượt để lấy lệnh chạy Tool đó.</li>
+                    <li>Ngoài ra bạn có thể xem chi tiết về loại Tool mà bạn cần bằng cách ấn vào nút 🔗 Lấy link vượt khi và nhấn nút Xem video hướng dẫn là xong.</li>
+                </ol>
+            </div>
+          
+            <div class="admin-notice-box">
+                <div class="admin-notice-title">📌💬 DA 〆 PRO 👑🇻🇳:</div>
+                <ol>
+                    <li>Các lệnh Tool đang ở chế độ <span class="txt-online">online</span> là các lệnh Tool đã được ra mắt mọi người có thể lấy.</li>
+                    <li>Các lệnh Tool đang ở chế độ <span class="txt-offline">offline</span> là các lệnh Tool bị khóa vì để DA〆PRO cập nhật và điều chỉnh Tool đó mọi người sẽ không thể lấy Tool đó cho đến khi DA〆PRO mở khóa mọi người mới có thể lấy Tool.</li>
+                </ol>
+            </div>
+            <div class="list-container">
+                <div class="item-card" id="prod-script-1">
+                <div class="card-chain-overlay">
+                    <div class="card-strand-1"></div>
+                    <div class="card-strand-2"></div>
+                    <div class="card-epic-lock">🔒</div>
+                </div>
+                    <div class="item-status-badge"><span class="txt-online">online</span></div>
+                    <div class="item-thumb"><img src="https://cdn.phototourl.com/free/2026-08-08-03598043-6399-4c5d-86e8-4bb3b15304a9.jpg" alt=""></div>
+                    <div class="item-info">
+                        <div class="item-title">Lệnh Chạy Tool Fix Lag DA〆PRO</div>
+                        <div class="item-desc">Tối ưu máy khi chơi game,Giảm giật lag,Cải thiện ping.....</div>
+                        <div class="action-btns">
+                            <div class="btn-glow-wrapper"><button class="btn-action" onclick="openLinkModal('Lệnh Chạy Tool DA〆PRO 👑 Trên Termux', '#', 'https://link4sub.com/O7ENcCGPiA', true)">🔗 Lấy link vượt</button></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-card locked" id="prod-script-2">
+                <div class="card-chain-overlay">
+                    <div class="card-strand-1"></div>
+                    <div class="card-strand-2"></div>
+                    <div class="card-epic-lock">🔒</div>
+                </div>
+                    <div class="item-status-badge"><span class="txt-offline">offline</span></div>
+                    <div class="item-thumb"><img src="https://cdn.phototourl.com/free/2026-08-08-03598043-6399-4c5d-86e8-4bb3b15304a9.jpg" alt=""></div>
+                    <div class="item-info">
+                        <div class="item-title">Lệnh Chạy Tool Fix Lag AX〆PRO</div>
+                        <div class="item-desc">Hiện Tại DA〆PRO Chưa Ra Mắt</div>
+                        <div class="action-btns">
+                            <div class="btn-glow-wrapper"><button class="btn-action" onclick="openLinkModal('Code Chạy App AX〆PRO Trên Termux', '#', '#', true)">🔗 Lấy link vượt</button></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-card locked" id="prod-script-3">
+                <div class="card-chain-overlay">
+                    <div class="card-strand-1"></div>
+                    <div class="card-strand-2"></div>
+                    <div class="card-epic-lock">🔒</div>
+                </div>
+                    <div class="item-status-badge"><span class="txt-offline">offline</span></div>
+                    <div class="item-thumb"><img src="https://cdn.phototourl.com/free/2026-08-08-03598043-6399-4c5d-86e8-4bb3b15304a9.jpg" alt=""></div>
+                    <div class="item-info">
+                        <div class="item-title">Lệnh Chạy Tool Fix Lag BX〆PRO</div>
+                        <div class="item-desc">Hiện Tại DA〆PRO Chưa Ra Mắt</div>
+                        <div class="action-btns">
+                            <div class="btn-glow-wrapper"><button class="btn-action" onclick="openLinkModal('Code Chạy App BX〆PRO Trên Termux', '#', '#', true)">🔗 Lấy link vượt</button></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="app-fixlag" class="tab-content">
+            <div class="section-title">📜>_Lệnh Chạy Tool Tăng FPS Cho Android Trên Tool</div>
+            <div class="admin-notice-box">
+                <div class="admin-notice-title">📌 Hướng dẫn lấy lệnh Tool tăng fps:</div>
+                <ol>
+                    <li>Chọn loại lệnh Tool mà bạn muốn sử dụng và nhấn nút 🔗 Lấy link vượt để lấy lệnh chạy Tool đó.</li>
+                    <li>Ngoài ra bạn có thể xem chi tiết về loại Tool mà bạn cần bằng cách ấn vào nút 🔗 Lấy link vượt khi và nhấn nút Xem video hướng dẫn là xong.</li>
+                </ol>
+            </div>
+          
+            <div class="admin-notice-box">
+                <div class="admin-notice-title">📌💬 DA 〆 PRO 👑🇻🇳:</div>
+                <ol>
+                    <li>Các lệnh Tool đang ở chế độ <span class="txt-online">online</span> là các lệnh Tool đã được ra mắt mọi người có thể lấy.</li>
+                    <li>Các lệnh Tool đang ở chế độ <span class="txt-offline">offline</span> là các lệnh Tool bị khóa vì để DA〆PRO cập nhật và điều chỉnh Tool đó mọi người sẽ không thể lấy Tool đó cho đến khi DA〆PRO mở khóa mọi người mới có thể lấy Tool.</li>
+                </ol>
+            </div>     
+            <div class="list-container">
+                <div class="item-card locked" id="prod-app-1">
+                <div class="card-chain-overlay">
+                    <div class="card-strand-1"></div>
+                    <div class="card-strand-2"></div>
+                    <div class="card-epic-lock">🔒</div>
+                </div>
+                    <div class="item-status-badge"><span class="txt-offline">offline</span></div>
+                    <div class="item-thumb"><img src="https://cdn.phototourl.com/free/2026-08-08-03598043-6399-4c5d-86e8-4bb3b15304a9.jpg" alt=""></div>
+                    <div class="item-info">
+                        <div class="item-title">Lệnh Chạy Tool Tăng FPS (Tên Tool Là ACFPS) Trên Termux</div>
+                        <div class="item-desc">Tăng tốc độ khung hình FPS của máy lên mức tối đa.</div>
+                        <div class="action-btns">
+                            <div class="btn-glow-wrapper"><button class="btn-action" onclick="openLinkModal('Lệnh chạy ACFPS', '#', '#', true)">🔗 Lấy link vượt</button></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="hack-fixlag" class="tab-content">
+            <div class="section-title">👑 App Fix Lag Cho Android APK</div>
+            <div class="admin-notice-box">
+                <div class="admin-notice-title">📌 Hướng dẫn lấy app fix lag:</div>
+                <ol>
+                    <li>Chọn loại app mà bạn muốn sử dụng và hãy nhấn nút 🔗 Lấy link vượt để lấy app đó.</li>
+                    <li>Ngoài ra bạn có thể xem chi tiết về loại tool mà bạn cần bằng cách ấn vào nút 🔗 Lấy link vượt khi và nhấn nút Xem video hướng dẫn là xong.</li>
+                </ol>
+            </div>
+          
+            <div class="admin-notice-box">
+                <div class="admin-notice-title">📌💬 DA 〆 PRO 👑🇻🇳:</div>
+                <ol>
+                    <li>Các app đang ở chế độ <span class="txt-online">online</span> là các app đã được ra mắt mọi người có thể lấy.</li>
+                    <li>Các app đang ở chế độ <span class="txt-offline">offline</span> là các app đang bị khóa vì để DA〆PRO cập nhật và điều chỉnh app đó mọi người sẽ không thể lấy app đó cho đến khi DA〆PRO mở khóa mọi người mới có thể lấy app.</li>
+                </ol>
+            </div>     
+            <div class="list-container">
+                <div class="item-card locked" id="prod-hack-1">
+                <div class="card-chain-overlay">
+                    <div class="card-strand-1"></div>
+                    <div class="card-strand-2"></div>
+                    <div class="card-epic-lock">🔒</div>
+                </div>
+                    <div class="item-status-badge"><span class="txt-offline">offline</span></div>
+                    <div class="item-thumb"><img src="https://cdn.phototourl.com/free/2026-08-10-d268a7c4-0e90-47f4-9b79-e5c1d39f5b06.jpg" alt=""></div>
+                    <div class="item-info">
+                        <div class="item-title">App DX〆VIP Fix Lag Apk</div>
+                        <div class="item-desc">Tối ưu hóa đồ họa,Chống văng game,Xóa bộ nhớ rác.....</div>
+                        <div class="action-btns">
+                            <div class="btn-glow-wrapper"><button class="btn-action" onclick="openLinkModal('App DX〆VIP Fix Lag Apk', '#', '#', true)">🔗 Lấy link vượt</button></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+                
+        <div id="roblox-qt" class="tab-content">
+            <div class="section-title">🎮 Roblox Fix Lag APK</div>
+            <div class="admin-notice-box">
+                <div class="admin-notice-title">📌 Hướng dẫn lấy các phiên bản roblox:</div>
+                <ol>
+                    <li>Chọn loại bản roblox mà bạn muốn sử dụng và nhấn nút 🔗 Lấy link vượt để lấy bản roblox đó.</li>
+                </ol>
+            </div>
+          
+            <div class="admin-notice-box">
+                <div class="admin-notice-title">📌💬 DA 〆 PRO 👑🇻🇳:</div>
+                <ol>
+                    <li>Các phiên bản roblox đang ở chế độ <span class="txt-online">online</span> là các phiên bản đã được ra mắt mọi người có thể lấy.</li>
+                    <li>Các phiên bản roblox đang ở chế độ <span class="txt-offline">offline</span> là các phiên bản bị khóa vì để DA〆PRO cập nhật và điều chỉnh phiên bản đó đó mọi người sẽ không thể lấy các phiên bản đó cho đến khi DA〆PRO mở khóa mọi người mới có thể lấy các bản roblox.</li>
+                </ol>
+            </div>     
+            <div class="list-container">
+                <div class="item-card locked" id="prod-roblox-1">
+                <div class="card-chain-overlay">
+                    <div class="card-strand-1"></div>
+                    <div class="card-strand-2"></div>
+                    <div class="card-epic-lock">🔒</div>
+                </div>
+                    <div class="item-status-badge"><span class="txt-offline">offline</span></div>
+                    <div class="item-thumb"><img src="https://cdn.phototourl.com/free/2026-08-08-b2f65af7-ff54-4395-8235-cbae764ec150.jpg" alt=""></div>
+                    <div class="item-info">
+                        <div class="item-title">Roblox Lite (QT + VNG)</div>
+                        <div class="item-desc">Xóa Texture, tăng Max FPS</div>
+                        <div class="action-btns">
+                            <div class="btn-glow-wrapper"><button class="btn-action" onclick="openLinkModal('Roblox Lite (QT + VNG)', '#', '#', true)">🔗 Lấy link vượt</button></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+  
+        <div id="huongdan" class="tab-content">
+            <div class="section-title">📝 Hướng Dẫn Về Những Thứ Cần Thiết</div>
+            <div class="admin-notice-box">
+                <div class="admin-notice-title">📌 Ghi Chú:</div>
+                <ol>
+                    <li>Trang này sẽ hướng dẫn cho mọi người về những thứ cần thiết để dùng các sản phẩm của DA〆PRO</li>
+                </ol>
+            </div>
+          
+            <div class="admin-notice-box">
+                <div class="admin-notice-title">📌💬 DA 〆 PRO 👑🇻🇳:</div>
+                <ol>
+                    <li>Xem hướng dẫn để biết nha.</li>
+                    <li>Ngoài ra mọi người có thể xem hướng dẫn chi tiết hơn và muốn dễ hiểu hơn thì xem video tôi đã cung cấp ở các mục hướng dẫn. Lưu ý mỗi mục hướng dẫn tôi sẽ cung cấp một video riêng biệt.</li>
+                </ol>
+            </div>     
+            <div class="list-container">
+                <div class="item-card" id="huongdan-1">
+                <div class="card-chain-overlay">
+                    <div class="card-strand-1"></div>
+                    <div class="card-strand-2"></div>
+                    <div class="card-epic-lock">🔒</div>
+                </div>
+                    <div class="item-status-badge"><span class="txt-online">online</span></div>
+                    <div class="item-thumb"><img src="https://cdn.phototourl.com/free/2026-08-11-8a1bbc21-2973-4bbe-aa57-9c102ba1bb58.jpg" alt=""></div>
+                    <div class="item-info">
+                        <div class="item-title">Hướng dẫn chạy lệnh cần thiết khi mới cài đặt Termux để chạy Tool</div>
+                        <div class="item-desc">Ai mới cài đặt Termux về máy lên xem hướng</div>
+                        <div class="action-btns">
+                            <div class="btn-glow-wrapper"><button class="btn-action" onclick="openLinkModal('Chọn các phương thức hướng dẫn mà bạn muốn', 'https://youtu.be/X62JQRnx4lc?si=OZOdvX-JhZFOSneI', 'https://link4sub.com/hp8XzWjWv7', true)">🔗 Xem hướng dẫn</button></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+  
+    </div>
+
+
+    <div class="modal-overlay" id="linkModal">
+        <div class="modal-card" id="modalCard">
+            <div class="modal-title" id="modalTitle">TÊN BÀI VIẾT</div>
+            <div class="modal-btns">
+                <a href="#" target="_blank" class="modal-btn modal-btn-video" id="modalBtnVideo"><i class="fas fa-play-circle"></i> Xem video hướng dẫn</a>
+                <a href="#" target="_blank" class="modal-btn modal-btn-script" id="modalBtnScript">🔗 Lấy Link Tải / Script</a>
+                <button class="modal-btn modal-btn-cancel" onclick="closeLinkModal()">❌ Hủy</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BẢNG TELEGRAM MODAL CĂN GIỮA MÀN HÌNH -->
+    <div class="modal-overlay" id="telegramModal">
+        <div class="modal-card" id="telegramModalCard">
+            <div class="modal-title">Tham Gia các nền tảng Telegram của DA〆PRO tại đây</div>
+            <div class="modal-btns">
+                <a href="https://t.me/nhomchatdabroblox" target="_blank" class="modal-btn modal-btn-script">👥 NHÓM DA 〆 PRO</a>
+                <a href="https://t.me/kenhthongbaodab_roblox" target="_blank" class="modal-btn modal-btn-script">📢 KÊNH WED DA 〆 PRO 🔊</a>
+                <button class="modal-btn modal-btn-cancel" onclick="closeTelegramModal()">❌ Không</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BẢNG THÔNG BÁO CHÀO MỪNG TRANG WEB -->
+    <div class="modal-overlay" id="noticeModal">
+        <div class="modal-card notice-card">
+            <div class="notice-title">👋 CHÀO MỪNG BẠN ĐẾN VỚI DA 〆 PRO!</div>
+            <div class="notice-content">
+                <p>Cảm ơn bạn đã truy cập hệ thống! Dưới đây là các lệnh chạy các loại tool và app apk, roblox fix lag của web:</p>
+                <ul class="notice-list">
+                    <li>🔰 Lệnh Chạy Tool Fix Lag Trên Termux (Android)</li>
+                    <li>🔰 Lệnh Chạy Tool Tăng FPS Cho Android Trên Termux</li>
+                    <li>🔰 Các App Fix Lag APK Cho Android</li>
+                    <li>🎮 Roblox Fix Lag APK</li>
+                </ul>
+            </div>
+            <div class="modal-btns">
+                <button class="modal-btn modal-btn-script" id="btnNoticeConfirm">✅ Xác Nhận</button>
+                <button class="modal-btn modal-btn-video" id="btnNoticeHide2h">⏱️ Không hiển thị trong 2 giờ</button>
+                <button class="modal-btn modal-btn-cancel" id="btnNoticeClose">❌ Đóng <span id="noticeCountdownText">(10s)</span></button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const btnToggleMenu = document.getElementById('btnToggleMenu');
+        const btnCloseSidebar = document.getElementById('btnCloseSidebar');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const linkModal = document.getElementById('linkModal');
+        const modalCard = document.getElementById('modalCard');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBtnVideo = document.getElementById('modalBtnVideo');
+        const modalBtnScript = document.getElementById('modalBtnScript');
+
+        const telegramModal = document.getElementById('telegramModal');
+        
+        const themeSwitchBtn = document.getElementById('themeSwitchBtn');
+        const themeSwitchIcon = document.getElementById('themeSwitchIcon');
+
+        // Khai báo Bảng Thông Báo
+        const noticeModal = document.getElementById('noticeModal');
+        const btnNoticeConfirm = document.getElementById('btnNoticeConfirm');
+        const btnNoticeHide2h = document.getElementById('btnNoticeHide2h');
+        const btnNoticeClose = document.getElementById('btnNoticeClose');
+        const noticeCountdownText = document.getElementById('noticeCountdownText');
+        let noticeTimer = null;
+
+        let liveChartInstance = null;
+        let isDarkMode = false;
+
+        function lockBodyScroll() {
+            document.body.style.overflow = 'hidden';
+        }
+
+        function unlockBodyScroll() {
+            const isSidebarOpen = sidebar.classList.contains('active');
+            const isLinkModalOpen = linkModal.classList.contains('active');
+            const isTelegramModalOpen = telegramModal.classList.contains('active');
+            const isNoticeModalOpen = noticeModal.classList.contains('active');
+
+            if (!isSidebarOpen && !isLinkModalOpen && !isTelegramModalOpen && !isNoticeModalOpen) {
+                document.body.style.overflow = '';
+            }
+        }
+
+        /* --- XỬ LÝ BẢNG THÔNG BÁO --- */
+        function checkAndShowNotice() {
+            const hideUntil = localStorage.getItem('notice_hide_until');
+            if (hideUntil && Date.now() < parseInt(hideUntil, 10)) {
+                return; // Nếu chưa hết 2 giờ thì không hiển thị
+            }
+
+            // Hiển thị thông báo và khóa cuộn web
+            noticeModal.classList.add('active');
+            lockBodyScroll();
+
+            let timeLeft = 10;
+            noticeCountdownText.innerText = `(${timeLeft}s)`;
+
+            noticeTimer = setInterval(() => {
+                timeLeft--;
+                if (timeLeft > 0) {
+                    noticeCountdownText.innerText = `(${timeLeft}s)`;
+                } else {
+                    closeNoticeModal();
+                }
+            }, 1000);
+        }
+
+        function closeNoticeModal() {
+            if (noticeTimer) clearInterval(noticeTimer);
+            noticeModal.classList.remove('active');
+            unlockBodyScroll();
+        }
+
+        btnNoticeConfirm.addEventListener('click', closeNoticeModal);
+        btnNoticeClose.addEventListener('click', closeNoticeModal);
+        btnNoticeHide2h.addEventListener('click', () => {
+            const twoHoursInMs = 2 * 60 * 60 * 1000;
+            localStorage.setItem('notice_hide_until', Date.now() + twoHoursInMs);
+            closeNoticeModal();
+        });
+
+        function initAnalytics() {
+            let visitors = localStorage.getItem('dab_visitors') || 1250;
+            visitors = parseInt(visitors) + 1;
+            localStorage.setItem('dab_visitors', visitors);
+            
+            animateValue("statVisitors", 0, visitors, 1.0);
+            initChart(visitors);
+        }
+
+        function animateValue(id, start, end, duration) {
+            let obj = document.getElementById(id);
+            if (!obj) return;
+            let counter = { val: start };
+            gsap.to(counter, {
+                val: end, duration: duration, ease: "power2.out",
+                onUpdate: function() { obj.innerText = Math.floor(counter.val).toLocaleString(); }
+            });
+        }
+
+        function initChart(visitors) {
+            const ctxChart = document.getElementById('liveChart').getContext('2d');
+            if (liveChartInstance) liveChartInstance.destroy();
+            
+            liveChartInstance = new Chart(ctxChart, {
+                type: 'bar',
+                data: {
+                    labels: ['Truy Cập Gần Nhất', 'Hệ Thống Ổn Định'],
+                    datasets: [
+                        {
+                            label: 'Thống Kê Hệ Thống',
+                            data: [visitors, 100],
+                            backgroundColor: ['#38bdf8', '#00ff66'],
+                            borderWidth: 1,
+                            borderRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { labels: { color: '#ffffff', font: { family: 'Fira Code', size: 10 } } }
+                    },
+                    scales: {
+                        x: { ticks: { color: '#8b9bb4', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        y: { ticks: { color: '#8b9bb4', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                    },
+                    animation: { duration: 600, easing: 'easeOutQuart' }
+                }
+            });
+        }
+        
+        function toggleThemeMode() {
+            isDarkMode = !isDarkMode;
+            applyThemeState();
+        }
+
+        function applyThemeState() {
+            document.body.classList.remove('light-mode');
+            if (isDarkMode) {
+                themeSwitchIcon.className = "fas fa-sun";
+                localStorage.setItem('dab_theme_mode', 'dark');
+            } else {
+                document.body.classList.add('light-mode');
+                themeSwitchIcon.className = "fas fa-moon";
+                localStorage.setItem('dab_theme_mode', 'light');
+            }
+        }
+        
+        function openSidebar() { 
+            sidebar.scrollTop = 0; // Luôn đưa Menu về trên cùng khi bấm mở
+            sidebar.classList.add('active'); 
+            overlay.classList.add('active'); 
+            lockBodyScroll();
+        }
+        
+        function closeSidebar() { 
+            sidebar.classList.remove('active'); 
+            overlay.classList.remove('active'); 
+            unlockBodyScroll();
+        }
+
+        btnToggleMenu.addEventListener('click', openSidebar);
+        btnCloseSidebar.addEventListener('click', closeSidebar);
+        overlay.addEventListener('click', closeSidebar);
+
+        function switchPage(pageId, element) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+
+            const target = document.getElementById(pageId);
+            if(target) {
+                target.classList.add('active');
+            }
+            
+            // Cập nhật trạng thái active cho nút chuyển danh mục tương ứng
+            const activeNav = element || document.querySelector(`.nav-item[data-page="${pageId}"]`);
+            if(activeNav) activeNav.classList.add('active');
+
+            // Lưu trang hiện tại vào sessionStorage để khi load lại trang (F5) không bị mất
+            sessionStorage.setItem('activePage', pageId);
+            closeSidebar();
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initAnalytics();
+
+            // Kiểm tra xem đây là lượt TRUY CẬP MỚI hay LOAD LẠI TRANG (F5/Reload)
+            const isReload = sessionStorage.getItem('is_session_active');
+
+            let pageToLoad = 'overview';
+
+            if (isReload) {
+                // Trường hợp 1: LOAD LẠI TRANG -> Giữ nguyên trang người dùng đang mở
+                pageToLoad = sessionStorage.getItem('activePage') || 'overview';
+            } else {
+                // Trường hợp 2: TRUY CẬP LẠI MỚI -> Đặt mặc định quay về trang Tổng Quan
+                sessionStorage.setItem('is_session_active', 'true');
+                sessionStorage.setItem('activePage', 'overview');
+            }
+
+            switchPage(pageToLoad);
+
+            const savedThemeMode = localStorage.getItem('dab_theme_mode');
+            isDarkMode = (savedThemeMode === 'dark');
+            applyThemeState();
+
+            // CHỈ hiển thị thông báo chào mừng khi TRUY CẬP MỚI, KHÔNG hiện khi LOAD LẠI TRANG
+            if (!isReload) {
+                checkAndShowNotice();
+            }
+        });
+
+        function openChatRoom(botType) {
+            document.getElementById('botSquaresArea').style.display = 'none';
+            document.getElementById('chatRoomArea').classList.add('active');
+            document.getElementById('chatRoomTitle').innerText = (botType === 'bot1') ? '💬 Đoạn Chat - Bot A' : '💬 Đoạn Chat - Bot B';
+        }
+
+        function closeChatRoom() {
+            document.getElementById('chatRoomArea').classList.remove('active');
+            document.getElementById('botSquaresArea').style.display = 'grid';
+        }
+
+        function runDynamicChat() {
+            const inp = document.getElementById('inputDynamicChat');
+            const scr = document.getElementById('screenDynamicChat');
+            let q = inp.value.trim();
+            if(!q) return;
+            scr.innerHTML += `<br>👤 Bạn: ${q}`;
+            inp.value = '';
+            
+            setTimeout(() => {
+                scr.innerHTML += `<br>🤖 Bot: Chào bạn, hệ thống đang hoạt động mượt mà!`;
+                scr.scrollTop = scr.scrollHeight;
+            }, 300);
+        }
+        
+        function openLinkModal(title, videoUrl, scriptUrl, isScriptPage) {
+            modalTitle.innerText = title;
+            modalBtnScript.href = scriptUrl;
+            if (isScriptPage) {
+                modalBtnScript.innerHTML = "🔗 Lấy Link";
+                modalBtnVideo.style.display = "flex";
+                modalBtnVideo.href = videoUrl;
+            } else {
+                modalBtnScript.innerHTML = "📥 Lấy Link Tải Về";
+                modalBtnVideo.style.display = "none";
+            }
+            linkModal.classList.add('active');
+            lockBodyScroll();
+        }
+
+        function closeLinkModal() { 
+            linkModal.classList.remove('active'); 
+            unlockBodyScroll();
+        }
+        
+        linkModal.addEventListener('click', function(e) { if (e.target === linkModal) closeLinkModal(); });
+        
+        function openTelegramModal() { 
+            telegramModal.classList.add('active'); 
+            lockBodyScroll();
+        }
+        
+        function closeTelegramModal() { 
+            telegramModal.classList.remove('active'); 
+            unlockBodyScroll();
+        }
+        
+        telegramModal.addEventListener('click', function(e) { if (e.target === telegramModal) closeTelegramModal(); });
+        
+        const canvas = document.getElementById('hacker-canvas');
+        const ctx = canvas.getContext('2d');
+        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        resizeCanvas(); window.addEventListener('resize', resizeCanvas);
+    </script>
+</body>
+</html>
